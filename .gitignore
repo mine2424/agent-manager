@@ -1,0 +1,70 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Production builds
+dist/
+*/dist/
+build/
+*/build/
+
+# Environment files
+.env
+.env.*
+!.env.example
+*/.env
+*/.env.*
+!*/.env.example
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.bak
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+*.temp
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+database-debug.log
+pubsub-debug.log
+
+# Misc
+.cache/
+coverage/
+.nyc_output/
+*.pid
+*.seed
+*.pid.lock
+
+# TypeScript
+*.tsbuildinfo
+
+# Package manager files
+.pnp.*
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz

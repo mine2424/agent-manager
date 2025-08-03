@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ユーザーは自分のデータのみアクセス可能
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // プロジェクトは所有者のみアクセス可能
+    match /projects/{projectId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      
+      // プロジェクト内のファイル
+      match /files/{fileId} {
+        allow read, write: if request.auth != null && 
+          request.auth.uid == get(/databases/$(database)/documents/projects/$(projectId)).data.userId;
+      }
+      
+      // プロジェクトの実行履歴
+      match /executions/{executionId} {
+        allow read, write: if request.auth != null && 
+          request.auth.uid == get(/databases/$(database)/documents/projects/$(projectId)).data.userId;
+      }
+    }
+  }
+}
