@@ -19,6 +19,7 @@ export const useFiles = (projectId: string | undefined) => {
   const [files, setFiles] = useState<FileNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
 
   useEffect(() => {
     if (!projectId) {
@@ -55,7 +56,7 @@ export const useFiles = (projectId: string | undefined) => {
     );
 
     return unsubscribe;
-  }, [projectId]);
+  }, [projectId, refetchTrigger]);
 
   const createFile = async (
     name: string, 
@@ -151,6 +152,11 @@ export const useFiles = (projectId: string | undefined) => {
     }
   };
 
+  const refetch = async () => {
+    // onSnapshotを再トリガーするためにカウンターを更新
+    setRefetchTrigger(prev => prev + 1);
+  };
+
   return {
     files,
     loading,
@@ -158,7 +164,8 @@ export const useFiles = (projectId: string | undefined) => {
     createFile,
     updateFile,
     deleteFile,
-    getFile
+    getFile,
+    refetch
   };
 };
 

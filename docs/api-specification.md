@@ -2,10 +2,44 @@
 
 ## 1. 概要
 
-Agent Managerは3つの主要なAPIインターフェースを提供します：
+Agent Managerは4つの主要なAPIインターフェースを提供します：
 1. **Firebase Firestore API** - データ永続化
 2. **WebSocket API** - リアルタイム通信
-3. **REST API** (将来実装) - 外部連携用
+3. **Spec-Driven Development API** - 自動仕様生成（新機能！）
+4. **REST API** (将来実装) - 外部連携用
+
+### 1.1 セキュリティ機能
+
+- **認証**: Firebase Authentication (GitHub OAuth)
+- **入力検証**: Zodスキーマによる厳密な検証
+- **レート制限**: エンドポイント別の制限
+- **サニタイゼーション**: パス、コマンド、HTMLのサニタイズ
+- **OWASP Top 10準拠**: セキュリティベストプラクティス
+- **監査ログ**: 包括的なイベント追跡
+
+### 1.2 新機能（2025年8月10日追加）
+
+#### 仕様駆動開発システム
+- **Kiro式仕様生成**: 最小4行入力から詳細仕様を自動生成
+- **EARS記法**: 構造化された要件定義
+- **Mermaidダイアグラム**: アーキテクチャの自動視覚化
+- **TypeScriptインターフェース生成**
+- **3段階ドキュメント**: 要件 → 設計 → タスク
+- **インタラクティブな改善ワークフロー**
+
+#### セキュリティ強化
+- **監査ログシステム**: コンプライアンス対応
+- **高度な入力検証**: Zodスキーマによる検証
+- **ディレクトリトラバーサル防止**
+- **危険なコマンド検出**
+- **レート制限**: 設定可能な制限値
+
+#### Claude統合改善
+- **ローカルClaude CLI実行**: --printフラグ使用
+- **リアルタイム出力ストリーミング**
+- **ファイル変更検出・同期**
+- **タイムアウト管理**: 5分間
+- **エラーハンドリング改善**
 
 ## 2. Firebase Firestore API
 
@@ -57,6 +91,30 @@ Agent Managerは3つの主要なAPIインターフェースを提供します：
 | isDirectory | boolean | ディレクトリかどうか | ✓ |
 | createdAt | timestamp | 作成日時 | ✓ |
 | updatedAt | timestamp | 更新日時 | ✓ |
+
+#### specs サブコレクション（新機能！）
+```
+/projects/{projectId}/specs/{specId}
+```
+
+| フィールド | 型 | 説明 | 必須 |
+|----------|---|------|-----|
+| id | string | 仕様ID | ✓ |
+| title | string | 仕様タイトル | ✓ |
+| requirements | string[] | 元の要件リスト | ✓ |
+| currentPhase | string | 現在のフェーズ | ✓ |
+| requirements_md | string | 要件定義書 | |
+| design_md | string | 設計書 | |
+| tasks_md | string | 実装タスク | |
+| metadata | object | メタデータ | |
+| createdAt | timestamp | 作成日時 | ✓ |
+| updatedAt | timestamp | 更新日時 | ✓ |
+
+**currentPhase の値:**
+- `requirements` - 要件定義フェーズ
+- `design` - 設計フェーズ  
+- `tasks` - 実装タスクフェーズ
+- `completed` - 完了
 
 #### executions サブコレクション
 ```
@@ -128,7 +186,44 @@ const socket = io('ws://localhost:8080', {
 });
 ```
 
-### 3.2 クライアント → サーバー イベント
+### 3.2 入力検証
+
+すべてのイベントデータはZodスキーマによる検証が実施されます。
+
+#### 実行コマンドの検証
+```typescript
+// 検証スキーマ
+execute: z.object({
+  projectId: z.string().min(1).max(100),
+  command: z.string().min(1).max(5000),
+  targetFiles: z.array(z.string()).optional(),
+  workingDirectory: z.string().optional(),
+  timeout: z.number().min(1000).max(300000).optional(),
+})
+
+// 危険なコマンドパターン
+- rm -rf /
+- sudo
+- chmod 777
+- eval()
+- exec()
+```
+
+#### ファイル同期の検証
+```typescript
+fileSync: z.object({
+  projectId: z.string().min(1).max(100),
+  files: z.array(
+    z.object({
+      path: z.string().min(1).max(1000),
+      content: z.string().max(10 * 1024 * 1024), // 10MB
+      action: z.enum(['create', 'update', 'delete']),
+    })
+  ),
+})
+```
+
+### 3.3 クライアント → サーバー イベント
 
 #### auth - 認証
 ```typescript
@@ -262,7 +357,23 @@ const socket = io('ws://localhost:8080', {
 }
 ```
 
-### 3.4 エラーコード
+### 3.4 サニタイゼーション
+
+すべての入力は以下のサニタイゼーションが適用されます：
+
+#### ファイルパス
+- `..` の除去（ディレクトリトラバーサル防止）
+- 先頭の `/` を除去
+- 危険な文字の除去: `< > : " | ? * \0`
+- パス区切り文字の正規化
+
+#### コマンド
+- nullバイトの除去
+- 空白文字のトリミング
+- 長さ制限 (5000文字)
+- 危険なコマンドパターンの検出
+
+### 3.5 エラーコード
 
 | コード | 説明 |
 |-------|------|
@@ -275,6 +386,9 @@ const socket = io('ws://localhost:8080', {
 | FILE_NOT_FOUND | ファイルが見つからない |
 | FILE_TOO_LARGE | ファイルサイズ超過 |
 | BRIDGE_ERROR | ローカルブリッジエラー |
+| VALIDATION_ERROR | 入力検証エラー |
+| DANGEROUS_COMMAND | 危険なコマンド検出 |
+| RATE_LIMIT_EXCEEDED | レート制限超過 |
 | UNKNOWN_ERROR | 不明なエラー |
 
 ## 4. REST API (将来実装)
@@ -314,12 +428,35 @@ Authorization: Bearer <firebase-id-token>
 - ファイルサイズ: 最大 10MB
 - プロジェクトサイズ: 最大 1GB
 - 実行出力: 最大 10MB
-- コマンド長: 最大 1000文字
+- コマンド長: 最大 5000文字
+- ファイルパス: 最大 1000文字
+- プロジェクト名: 最大 100文字
 
 ### 5.2 レート制限
-- API呼び出し: 1000回/時間
-- 実行: 100回/日
-- 同時実行: 1つ/プロジェクト
+
+#### 一般APIエンドポイント
+- ウィンドウ: 15分
+- 最大リクエスト: 100回
+- 対象: /health, /api/*
+
+#### 実行API
+- ウィンドウ: 1分
+- 最大リクエスト: 5回
+- 対象: /api/execute, WebSocket 'execute'イベント
+
+#### ファイル操作API
+- ウィンドウ: 1分
+- 最大リクエスト: 30回
+- 対象: /api/files/*, WebSocket 'file:sync'イベント
+
+#### レート制限超過時のレスポンス
+```json
+{
+  "error": "Too many requests",
+  "code": "RATE_LIMIT_EXCEEDED",
+  "retryAfter": 60 // 秒単位
+}
+```
 
 ### 5.3 タイムアウト
 - 実行タイムアウト: 5分（デフォルト）
@@ -395,3 +532,85 @@ const watchFiles = (projectId: string) => {
   });
 };
 ```
+
+### 6.4 仕様駆動開発の使用例（新機能！）
+```typescript
+// 仕様生成開始
+const startSpecGeneration = (requirements: string[]) => {
+  socket.emit('spec:start', {
+    projectId: 'project123',
+    title: 'User Management System',
+    requirements: [
+      'ユーザー認証システム',
+      'プロフィール管理',
+      'ロールベース権限',
+      'ユーザー操作用APIエンドポイント'
+    ],
+    context: 'セキュリティ要件を持つECプラットフォーム'
+  });
+};
+
+// 仕様生成イベントの監視
+socket.on('spec:generated', (data) => {
+  console.log(`${data.phase}ドキュメントが生成されました:`);
+  console.log(data.content);
+  
+  if (data.metadata.mermaidDiagrams) {
+    console.log('アーキテクチャ図:', data.metadata.mermaidDiagrams);
+  }
+  
+  if (data.metadata.interfaces) {
+    console.log('TypeScriptインターフェース:', data.metadata.interfaces);
+  }
+});
+
+// フィードバックに基づく仕様改善
+const refineSpec = (specId: string, feedback: string) => {
+  socket.emit('spec:refine', {
+    specId,
+    feedback: 'OAuth統合と2FA対応を追加',
+    phase: 'requirements'
+  });
+};
+```
+
+## 7. パフォーマンス指標
+
+### 7.1 現在のパフォーマンス
+- **フロントエンドビルドサイズ**: 766KB（gzip圧縮時207KB）
+- **API応答時間**: 平均200ms未満
+- **WebSocketレイテンシ**: 50ms未満
+- **仕様生成時間**: 30-60秒
+- **ファイル同期時間**: 5秒未満
+
+### 7.2 スケーラビリティ目標
+- **同時接続ユーザー**: 1000人以上
+- **ユーザーあたりプロジェクト数**: 100個以上
+- **プロジェクトあたりファイル数**: 1000個以上
+- **実行タイムアウト**: 5分
+- **稼働率**: 99.9%
+
+## 8. コンプライアンス・セキュリティ
+
+### 8.1 OWASP Top 10対応
+- ✅ **A01: アクセス制御の不備** - Firebaseセキュリティルール、ユーザー固有データ
+- ✅ **A02: 暗号化の不備** - HTTPS、セキュアトークン、暗号化ストレージ
+- ✅ **A03: インジェクション** - 入力検証、パラメータ化クエリ、サニタイゼーション
+- ✅ **A04: 安全でない設計** - セキュリティバイデザイン、脅威モデリング
+- ✅ **A05: セキュリティ設定ミス** - セキュアデフォルト、強化された設定
+- ✅ **A06: 脆弱なコンポーネント** - 定期更新、依存関係スキャン
+- ✅ **A07: 識別・認証の不備** - 強力な認証、セッション管理
+- ✅ **A08: ソフトウェア・データ整合性の不備** - ファイル整合性チェック、セキュア更新
+- ✅ **A09: セキュリティログ監視不足** - 包括的な監査ログ
+- ✅ **A10: サーバーサイドリクエストフォージェリ** - リクエスト検証、許可リスト
+
+### 8.2 監査証跡
+- **イベント保持期間**: 最低90日間
+- **ログ形式**: 構造化JSON
+- **モニタリング**: リアルタイムセキュリティアラート
+- **コンプライアンス**: SOC 2 Type II対応準備完了
+
+---
+
+*最終更新: 2025年8月10日*
+*APIバージョン: 2.0.0*

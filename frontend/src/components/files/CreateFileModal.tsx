@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { MobileModal } from '../layout/MobileModal';
+import { useValidation, ValidationSchemas } from '../../utils/validation';
 
 interface CreateFileModalProps {
   isOpen: boolean;
@@ -19,19 +20,33 @@ export const CreateFileModal: React.FC<CreateFileModalProps> = ({
   const [initialContent, setInitialContent] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const isMobile = useIsMobile();
+  const { errors, validateForm, validateField, clearErrors } = useValidation(ValidationSchemas.file);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fileName.trim()) return;
+    
+    const fullPath = currentPath ? `${currentPath}/${fileName.trim()}` : fileName.trim();
+    const formData = {
+      name: fileName.trim(),
+      path: fullPath,
+      content: initialContent
+    };
+    
+    if (!validateForm(formData)) {
+      return;
+    }
 
     setIsCreating(true);
     try {
-      const fullPath = currentPath ? `${currentPath}/${fileName.trim()}` : fileName.trim();
-      await onCreate(fileName.trim(), initialContent);
+      // Sanitize inputs before creating
+      const sanitizedName = fileName.trim();
+      
+      await onCreate(sanitizedName, initialContent);
       setFileName('');
       setInitialContent('');
+      clearErrors();
       onClose();
     } catch (error) {
       console.error('Failed to create file:', error);
@@ -61,6 +76,7 @@ export const CreateFileModal: React.FC<CreateFileModalProps> = ({
   const handleFileNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value;
     setFileName(name);
+    validateField('name', name);
     
     // ファイル名に基づいてテンプレートを設定
     if (name && !initialContent) {
@@ -79,11 +95,14 @@ export const CreateFileModal: React.FC<CreateFileModalProps> = ({
           id="fileName"
           value={fileName}
           onChange={handleFileNameChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`w-full px-3 py-2 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 ${errors.name ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
           placeholder="index.js"
           required
           autoFocus
         />
+        {errors.name && (
+          <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+        )}
         {currentPath && (
           <p className="mt-1 text-xs text-gray-500">
             パス: {currentPath}/
@@ -98,11 +117,17 @@ export const CreateFileModal: React.FC<CreateFileModalProps> = ({
         <textarea
           id="content"
           value={initialContent}
-          onChange={(e) => setInitialContent(e.target.value)}
+          onChange={(e) => {
+            setInitialContent(e.target.value);
+            validateField('content', e.target.value);
+          }}
           rows={isMobile ? 6 : 10}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+          className={`w-full px-3 py-2 border ${errors.content ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 ${errors.content ? 'focus:ring-red-500' : 'focus:ring-blue-500'} font-mono text-sm`}
           placeholder="ファイルの初期内容を入力してください"
         />
+        {errors.content && (
+          <p className="mt-1 text-sm text-red-600">{errors.content}</p>
+        )}
       </div>
 
       <div className={`flex justify-end space-x-3 ${isMobile ? 'border-t pt-4' : ''}`}>

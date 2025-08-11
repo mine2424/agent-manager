@@ -1,0 +1,228 @@
+name: Deploy Pipeline
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+
+jobs:
+  # Deploy to Firebase Hosting
+  deploy-frontend:
+    name: Deploy Frontend to Firebase
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.inputs.environment || 'staging' }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+        env:
+          NODE_ENV: production
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_LOCAL_BRIDGE_URL: ${{ vars.API_URL }}
+          VITE_APP_ENV: ${{ github.event.inputs.environment || 'staging' }}
+          
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          channelId: ${{ github.event.inputs.environment == 'production' && 'live' || 'preview' }}
+          projectId: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          target: agent-manager-frontend
+
+  # Deploy Backend to Google Cloud Run
+  deploy-backend:
+    name: Deploy Backend to Cloud Run
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.inputs.environment || 'staging' }}
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+          
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker
+        
+      - name: Build Docker image
+        working-directory: ./local-bridge
+        run: |
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/agent-manager-backend:${{ github.sha }} .
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/agent-manager-backend:latest .
+          
+      - name: Push Docker image
+        run: |
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/agent-manager-backend:${{ github.sha }}
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/agent-manager-backend:latest
+          
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy agent-manager-backend \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/agent-manager-backend:${{ github.sha }} \
+            --platform managed \
+            --region us-central1 \
+            --port 8080 \
+            --allow-unauthenticated \
+            --set-env-vars="NODE_ENV=production" \
+            --set-env-vars="FIREBASE_PROJECT_ID=${{ secrets.VITE_FIREBASE_PROJECT_ID }}" \
+            --set-env-vars="CORS_ORIGIN=${{ vars.FRONTEND_URL }}" \
+            --set-secrets="FIREBASE_SERVICE_ACCOUNT=firebase-service-account:latest" \
+            --set-secrets="JWT_SECRET=jwt-secret:latest" \
+            --min-instances=1 \
+            --max-instances=10 \
+            --memory=1Gi \
+            --cpu=1 \
+            --timeout=300 \
+            --concurrency=100
+
+  # Run Smoke Tests
+  smoke-tests:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    needs: [deploy-frontend, deploy-backend]
+    environment:
+      name: ${{ github.event.inputs.environment || 'staging' }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Install test dependencies
+        run: |
+          npm install -g newman
+          npm install -g @playwright/test
+          
+      - name: Run API smoke tests
+        run: |
+          newman run e2e/postman/smoke-tests.json \
+            --env-var "API_URL=${{ vars.API_URL }}" \
+            --env-var "AUTH_TOKEN=${{ secrets.TEST_AUTH_TOKEN }}"
+        continue-on-error: true
+        
+      - name: Run UI smoke tests
+        run: |
+          npx playwright test e2e/smoke/ --project=chromium
+        env:
+          E2E_TEST_URL: ${{ vars.FRONTEND_URL }}
+          E2E_TEST_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          E2E_TEST_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          
+      - name: Health check
+        run: |
+          curl -f ${{ vars.API_URL }}/health || exit 1
+          echo "Backend health check passed"
+          
+      - name: Notify deployment status
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            Deployment to ${{ github.event.inputs.environment || 'staging' }} ${{ job.status }}
+            Frontend: ${{ vars.FRONTEND_URL }}
+            Backend: ${{ vars.API_URL }}
+            Commit: ${{ github.sha }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Rollback on Failure
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    needs: [smoke-tests]
+    if: failure()
+    environment:
+      name: ${{ github.event.inputs.environment || 'staging' }}
+    steps:
+      - name: Rollback Cloud Run
+        run: |
+          gcloud run services update-traffic agent-manager-backend \
+            --to-revisions=PREVIOUS=100 \
+            --platform managed \
+            --region us-central1
+            
+      - name: Rollback Firebase Hosting
+        run: |
+          firebase hosting:clone \
+            ${{ secrets.VITE_FIREBASE_PROJECT_ID }}:previous \
+            ${{ secrets.VITE_FIREBASE_PROJECT_ID }}:live
+            
+      - name: Notify rollback
+        uses: 8398a7/action-slack@v3
+        with:
+          status: 'warning'
+          text: |
+            ⚠️ Deployment rollback initiated for ${{ github.event.inputs.environment || 'staging' }}
+            Reason: Smoke tests failed
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Create Release
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [smoke-tests]
+    if: github.event.inputs.environment == 'production'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "## What's Changed" > CHANGELOG.md
+          git log --pretty=format:"* %s (%h)" $(git describe --tags --abbrev=0)..HEAD >> CHANGELOG.md
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Release v${{ github.run_number }}
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: ${{ github.event.inputs.environment != 'production' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

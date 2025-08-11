@@ -1,0 +1,39 @@
+{
+  "name": "agent-manager",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloud-based Claude Code Manager",
+  "scripts": {
+    "dev": "node scripts/dev.js",
+    "dev:frontend": "cd frontend && pnpm dev",
+    "dev:bridge": "cd local-bridge && pnpm dev",
+    "build": "pnpm run -r build",
+    "build:frontend": "pnpm --filter frontend build",
+    "build:bridge": "pnpm --filter local-bridge build",
+    "test": "pnpm run -r test && npm run test:e2e",
+    "test:unit": "pnpm run -r test",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:mobile": "playwright test e2e/specs/mobile.spec.ts",
+    "test:e2e:auth": "playwright test e2e/specs/auth.spec.ts",
+    "test:e2e:projects": "playwright test e2e/specs/project-management.spec.ts",
+    "test:e2e:execution": "playwright test e2e/specs/claude-execution.spec.ts",
+    "playwright:install": "playwright install --with-deps",
+    "test:connection": "node scripts/test-connection.js",
+    "lint": "pnpm run -r lint",
+    "type-check": "pnpm run -r type-check",
+    "clean": "pnpm run -r clean && rm -rf node_modules",
+    "install:all": "pnpm install"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.2",
+    "@types/node": "^20.11.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0"
+}

@@ -1,0 +1,498 @@
+
+> frontend@0.0.0 test
+> vitest
+
+
+ RUN  v3.2.4 /Users/mine/development/agent-manager/frontend
+
+ ❯ src/utils/__tests__/errorHandler.test.ts (27 tests | 2 failed) 132ms
+   ✓ Error Handler Utilities > classifyError > should classify network errors 9ms
+   ✓ Error Handler Utilities > classifyError > should classify auth errors 0ms
+   ✓ Error Handler Utilities > classifyError > should classify Firebase errors 0ms
+   ✓ Error Handler Utilities > classifyError > should classify validation errors 0ms
+   ✓ Error Handler Utilities > classifyError > should classify execution errors 1ms
+   ✓ Error Handler Utilities > classifyError > should return UNKNOWN for unclassified errors 0ms
+   ✓ Error Handler Utilities > toAppError > should convert regular errors to AppError 23ms
+   ✓ Error Handler Utilities > toAppError > should preserve existing AppError properties 2ms
+   ✓ Error Handler Utilities > toAppError > should handle errors without messages 0ms
+   ✓ Error Handler Utilities > toAppError > should preserve stack traces 1ms
+   ✓ Error Handler Utilities > isRecoverable > should mark non-recoverable errors 1ms
+   ✓ Error Handler Utilities > isRecoverable > should mark network errors as recoverable 0ms
+   ✓ Error Handler Utilities > isRecoverable > should mark most auth errors as recoverable 0ms
+   ✓ Error Handler Utilities > isRecoverable > should mark disabled auth errors as non-recoverable 0ms
+   ✓ Error Handler Utilities > getUserMessage > should return predefined messages for known error codes 0ms
+   ✓ Error Handler Utilities > getUserMessage > should return custom user messages if provided 0ms
+   × Error Handler Utilities > getUserMessage > should return type-based messages for classified errors 13ms
+     → expected 'エラーが発生しました' to contain 'ネットワーク接続を確認してください'
+   ✓ Error Handler Utilities > GlobalErrorHandler > should handle errors and show toast notifications 13ms
+   ✓ Error Handler Utilities > GlobalErrorHandler > should not show toast for silent errors 13ms
+   ✓ Error Handler Utilities > GlobalErrorHandler > should log errors in development 29ms
+   ✓ Error Handler Utilities > GlobalErrorHandler > should handle different error types with appropriate toasts 7ms
+   ✓ Error Handler Utilities > withErrorHandling > should execute operation successfully 0ms
+   ✓ Error Handler Utilities > withErrorHandling > should handle errors and return undefined 1ms
+   ✓ Error Handler Utilities > withErrorHandling > should return fallback value on error 3ms
+   ✓ Error Handler Utilities > withErrorHandling > should use custom error message 2ms
+   ✓ Error Handler Utilities > withErrorHandling > should not show toast for silent errors 1ms
+   × Error Handler Utilities > Event Listeners > should set up global error handlers 3ms
+     → PromiseRejectionEvent is not defined
+ ❯ src/utils/__tests__/validation.test.ts (34 tests | 2 failed) 125ms
+   ✓ Validation Utilities > validate > should validate required fields 9ms
+   ✓ Validation Utilities > validate > should validate min and max length 1ms
+   ✓ Validation Utilities > validate > should validate patterns 2ms
+   ✓ Validation Utilities > validate > should validate custom validators 2ms
+   ✓ Validation Utilities > ValidationPatterns > should validate email pattern 1ms
+   ✓ Validation Utilities > ValidationPatterns > should validate URL pattern 0ms
+   ✓ Validation Utilities > ValidationPatterns > should validate project name pattern 2ms
+   ✓ Validation Utilities > ValidationPatterns > should validate file name pattern 0ms
+   ✓ Validation Utilities > ValidationPatterns > should validate file path pattern 0ms
+   ✓ Validation Utilities > Sanitizers > sanitizeFilePath > should remove directory traversal attempts 4ms
+   ✓ Validation Utilities > Sanitizers > sanitizeFilePath > should remove leading slashes 1ms
+   ✓ Validation Utilities > Sanitizers > sanitizeFilePath > should remove dangerous characters 2ms
+   ✓ Validation Utilities > Sanitizers > sanitizeFilePath > should normalize multiple slashes 0ms
+   ✓ Validation Utilities > Sanitizers > sanitizeFirestorePath > should replace slashes and dots 0ms
+   × Validation Utilities > Sanitizers > sanitizeFirestorePath > should remove brackets and special characters 67ms
+     → expected 'special____chars' to be 'special_____chars' // Object.is equality
+   ✓ Validation Utilities > Sanitizers > sanitizeFirestorePath > should limit path length 0ms
+   ✓ Validation Utilities > Sanitizers > escapeHtml > should escape HTML special characters 2ms
+   ✓ Validation Utilities > Sanitizers > sanitizeProjectName > should trim and limit length 0ms
+   ✓ Validation Utilities > Sanitizers > sanitizeProjectName > should normalize whitespace 0ms
+   ✓ Validation Utilities > Sanitizers > sanitizeCommand > should trim and limit length 0ms
+   ✓ Validation Utilities > Sanitizers > sanitizeCommand > should remove null bytes 0ms
+   ✓ Validation Utilities > ValidationSchemas > project schema > should validate project data 4ms
+   ✓ Validation Utilities > ValidationSchemas > project schema > should reject invalid project names 1ms
+   ✓ Validation Utilities > ValidationSchemas > project schema > should reject long descriptions 1ms
+   ✓ Validation Utilities > ValidationSchemas > file schema > should validate file data 1ms
+   × Validation Utilities > ValidationSchemas > file schema > should reject paths with directory traversal 11ms
+     → expected '正しい形式で入力してください' to be '相対パス("..")は使用できません' // Object.is equality
+   ✓ Validation Utilities > ValidationSchemas > file schema > should reject paths starting with / 1ms
+   ✓ Validation Utilities > ValidationSchemas > file schema > should reject large files 0ms
+   ✓ Validation Utilities > ValidationSchemas > execution schema > should validate execution commands 3ms
+   ✓ Validation Utilities > ValidationSchemas > execution schema > should reject dangerous commands 1ms
+   ✓ Validation Utilities > ValidationSchemas > execution schema > should enforce command length limits 0ms
+   ✓ Validation Utilities > ValidationSchemas > user schema > should validate user data 1ms
+   ✓ Validation Utilities > ValidationSchemas > user schema > should require valid email 0ms
+   ✓ Validation Utilities > ValidationSchemas > user schema > should enforce display name length 0ms
+stdout | src/contexts/__tests__/AuthContext.test.tsx > AuthContext > useAuth hook > should provide signIn function
+Signed in successfully: test@example.com
+
+stdout | src/contexts/__tests__/AuthContext.test.tsx > AuthContext > useAuth hook > should provide signOut function
+Signed out successfully
+
+ ✓ src/contexts/__tests__/AuthContext.test.tsx (14 tests) 342ms
+ ✓ src/hooks/__tests__/useProjects.test.ts (10 tests) 229ms
+ ✓ src/pages/__tests__/LoginPage.test.tsx (11 tests) 1025ms
+ ❯ src/components/common/__tests__/ErrorBoundary.test.tsx (13 tests | 3 failed) 1213ms
+   ✓ ErrorBoundary > should render children when there is no error 188ms
+   ✓ ErrorBoundary > should render error UI when child component throws 78ms
+   × ErrorBoundary > should show error details in development mode 172ms
+     → Found multiple elements with the text: /Test error message/
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<pre[39m
+  [33mclass[39m=[32m"mt-2 text-xs text-red-700 overflow-auto"[39m
+[36m>[39m
+  [0mError: Test error message[0m
+[36m</pre>[39m
+
+Ignored nodes: comments, script, style
+[36m<pre[39m
+  [33mclass[39m=[32m"mt-2 text-xs text-red-700 overflow-auto"[39m
+[36m>[39m
+  [0mError: Test error message
+    at ThrowError (/Users/mine/development/agent-manager/frontend/src/components/common/__tests__/ErrorBoundary.test.tsx:10:11)
+    at renderWithHooks (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:20103:13)
+    at beginWork (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:21626:16)
+    at beginWork$1 (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:27465:14)
+    at performUnitOfWork (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:26599:12)
+    at workLoopSync (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:26505:5)
+    at renderRootSync (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:26473:7)
+    at recoverFromConcurrentError (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:25889:20)
+    at performConcurrentWorkOnRoot (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:25789:22)[0m
+[36m</pre>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"max-w-md w-full space-y-8"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"text-center"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-triangle-alert mx-auto h-12 w-12 text-red-500"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M12 9v4"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M12 17h.01"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"mt-6 text-3xl font-extrabold text-gray-900"[39m
+          [36m>[39m
+            [0mエラーが発生しました[0m
+          [36m</h2>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"mt-2 text-sm text-gray-600"[39m
+          [36m>[39m
+            [0m申し訳ございません。予期しないエラーが発生しました。[0m
+          [36m</p>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mt-8 bg-red-50 border border-red-200 rounded-md p-4"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"text-sm"[39m
+          [36m>[39m
+            [36m<h3[39m
+              [33mclass[39m=[32m"font-medium text-red-800"[39m
+            [36m>[39m
+              [0mエラー詳細:[0m
+            [36m</h3>[39m
+            [36m<pre[39m
+              [33mclass[39m=[32m"mt-2 text-xs text-red-700 overflow-auto"[39m
+            [36m>[39m
+              [0mError: Test error message[0m
+            [36m</pre>[39m
+            [36m<details[39m
+              [33mclass[39m=[32m"mt-2"[39m
+            [36m>[39m
+              [36m<summary[39m
+                [33mclass[39m=[32m"cursor-pointer text-red-800 hover:text-red-900"[39m
+              [36m>[39m
+                [0mスタックトレース[0m
+              [36m</summary>[39m
+              [36m<pre[39m
+                [33mclass[39m=[32m"mt-2 text-xs text-red-700 overflow-auto"[39m
+              [36m>[39m
+                [0mError: Test error message
+    at ThrowError (/Users/mine/development/agent-manager/frontend/src/components/common/__tests__/ErrorBoundary.test.tsx:10:11)
+    at renderWithHooks (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:20103:13)
+    at beginWork (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:21626:16)
+    at beginWork$1 (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:27465:14)
+    at performUnitOfWork (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:26599:12)
+    at workLoopSync (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:26505:5)
+    at renderRootSync (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:26473:7)
+    at recoverFromConcurrentError (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:25889:20)
+    at performConcurrentWorkOnRoot (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:25789:22)[0m
+              [36m</pre>[39m
+            [36m</details>[39m
+            [36m<details[39m
+              [33mclass[39m=[32m"mt-2"[39m
+            [36m>[39m
+              [36m<summary[39m
+                [33mclass[39m=[32m"cursor-pointer text-red-800 hover:text-red-900"[39m
+              [36m>[39m
+                [0mコンポーネントスタック[0m
+              [36m</summary>[39m
+              [36m<pre[39m
+                [33mclass[39m=[32m"mt-2 text-xs text-red-700 overflow-auto"[39m
+              [36m>[39m
+                [0m
+    at ThrowError (/Users/mine/development/agent-manager/frontend/src/components/common/__tests__/ErrorBoundary.test.tsx:13:23)
+    at ErrorBoundary (/Users/mine/development/agent-manager/frontend/src/components/common/ErrorBoundary.tsx:12:5)
+    at Router (/Users/mine/development/agent-manager/frontend/node_modules/react-router/dist/umd/react-router.development.js:1207:17)
+    at BrowserRouter (/Users/mine/development/agent-manager/frontend/node_modules/react-router-dom/dist/umd/react-router-dom.development.js:695:7)[0m
+              [36m</pre>[39m
+            [36m</details>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mt-8 space-y-3"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"w-full flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-refresh-cw mr-2 h-4 w-4"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M21 3v5h-5"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M8 16H3v5"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0mもう一度試す[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"w-full flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"[39m
+          [36m>[39m
+            [0mページを再読み込み[0m
+          [36m</button>[39m
+          [36m<a[39m
+            [33mclass[39m=[32m"w-full flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"[39m
+            [33mhref[39m=[32m"/"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-house mr-2 h-4 w-4"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0mホームに戻る[0m
+          [36m</a>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+   ✓ ErrorBoundary > should not show error details in production mode 59ms
+   ✓ ErrorBoundary > should render custom fallback when provided 22ms
+   × ErrorBoundary > should reset error state when clicking retry button 260ms
+     → [2mexpect([22m[31melement[39m[2m).not.toBeInTheDocument()[22m
+
+[31mexpected document not to contain element, found <h2
+  class="mt-6 text-3xl font-extrabold text-gray-900"
+>
+  エラーが発生しました
+</h2> instead[39m
+   ✓ ErrorBoundary > should reload page when clicking reload button 164ms
+   × ErrorBoundary > should show warning after multiple errors 83ms
+     → Unable to find an element with the text: /エラーが繰り返し発生しています/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"max-w-md w-full space-y-8"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"text-center"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-triangle-alert mx-auto h-12 w-12 text-red-500"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M12 9v4"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M12 17h.01"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"mt-6 text-3xl font-extrabold text-gray-900"[39m
+          [36m>[39m
+            [0mエラーが発生しました[0m
+          [36m</h2>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"mt-2 text-sm text-gray-600"[39m
+          [36m>[39m
+            [0m申し訳ございません。予期しないエラーが発生しました。[0m
+          [36m</p>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mt-8 bg-red-50 border border-red-200 rounded-md p-4"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"text-sm"[39m
+          [36m>[39m
+            [36m<h3[39m
+              [33mclass[39m=[32m"font-medium text-red-800"[39m
+            [36m>[39m
+              [0mエラー詳細:[0m
+            [36m</h3>[39m
+            [36m<pre[39m
+              [33mclass[39m=[32m"mt-2 text-xs text-red-700 overflow-auto"[39m
+            [36m>[39m
+              [0mError: Test error message[0m
+            [36m</pre>[39m
+            [36m<details[39m
+              [33mclass[39m=[32m"mt-2"[39m
+            [36m>[39m
+              [36m<summary[39m
+                [33mclass[39m=[32m"cursor-pointer text-red-800 hover:text-red-900"[39m
+              [36m>[39m
+                [0mスタックトレース[0m
+              [36m</summary>[39m
+              [36m<pre[39m
+                [33mclass[39m=[32m"mt-2 text-xs text-red-700 overflow-auto"[39m
+              [36m>[39m
+                [0mError: Test error message
+    at ThrowError (/Users/mine/development/agent-manager/frontend/src/components/common/__tests__/ErrorBoundary.test.tsx:10:11)
+    at renderWithHooks (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:20103:13)
+    at beginWork (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:21626:16)
+    at beginWork$1 (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:27465:14)
+    at performUnitOfWork (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:26599:12)
+    at workLoopSync (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:26505:5)
+    at renderRootSync (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:26473:7)
+    at recoverFromConcurrentError (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:25889:20)
+    at performConcurrentWorkOnRoot (/Users/mine/development/agent-manager/frontend/node_modules/react-dom/cjs/react-dom.development.js:25789:22)[0m
+              [36m</pre>[39m
+            [36m</details>[39m
+            [36m<details[39m
+              [33mclass[39m=[32m"mt-2"[39m
+            [36m>[39m
+              [36m<summary[39m
+                [33mclass[39m=[32m"cursor-pointer text-red-800 hover:text-red-900"[39m
+              [36m>[39m
+                [0mコンポーネントスタック[0m
+              [36m</summary>[39m
+              [36m<pre[39m
+                [33mclass[39m=[32m"mt-2 text-xs text-red-700 overflow-auto"[39m
+              [36m>[39m
+                [0m
+    at ThrowError (/Users/mine/development/agent-manager/frontend/src/components/common/__tests__/ErrorBoundary.test.tsx:13:23)
+    at ErrorBoundary (/Users/mine/development/agent-manager/frontend/src/components/common/ErrorBoundary.tsx:12:5)
+    at Router (/Users/mine/development/agent-manager/frontend/node_modules/react-router/dist/umd/react-router.development.js:1207:17)
+    at BrowserRouter (/Users/mine/development/agent-manager/frontend/node_modules/react-router-dom/dist/umd/react-router-dom.development.js:695:7)[0m
+              [36m</pre>[39m
+            [36m</details>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mt-8 space-y-3"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"w-full flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-refresh-cw mr-2 h-4 w-4"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M21 3v5h-5"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M8 16H3v5"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0mもう一度試す[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"w-full flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"[39m
+          [36m>[39m
+            [0mページを再読み込み[0m
+          [36m</button>[39m
+          [36m<a[39m
+            [33mclass[39m=[32m"w-full flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"[39m
+            [33mhref[39m=[32m"/"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-house mr-2 h-4 w-4"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0mホームに戻る[0m
+          [36m</a>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+   ✓ ErrorBoundary > should log errors to console in development 52ms
+   ✓ ErrorBoundary > should store error in localStorage 11ms
+   ✓ ErrorBoundary > should limit error logs to 10 entries 9ms
+   ✓ ErrorBoundary > should handle localStorage errors gracefully 11ms
+   ✓ ErrorBoundary > should expand/collapse error details 101ms
+ ✓ src/components/project/__tests__/CreateProjectModal.test.tsx (14 tests) 4183ms
+   ✓ CreateProjectModal > should require project name  516ms
+   ✓ CreateProjectModal > should validate project name length  589ms
+   ✓ CreateProjectModal > should validate description length  1765ms
+
+ Test Files  3 failed | 4 passed (7)
+      Tests  7 failed | 116 passed (123)
+   Start at  20:54:33
+   Duration  20.81s (transform 7.90s, setup 70.15s, collect 9.16s, tests 7.25s, environment 18.98s, prepare 3.12s)
+

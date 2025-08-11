@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { MobileModal } from '../layout/MobileModal';
+import { useValidation, ValidationSchemas, Sanitizers } from '../../utils/validation';
 
 interface CreateProjectModalProps {
   isOpen: boolean;
@@ -17,18 +18,32 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const [description, setDescription] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const isMobile = useIsMobile();
+  const { errors, validateForm, validateField, clearErrors } = useValidation(ValidationSchemas.project);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    
+    const formData = {
+      name: name.trim(),
+      description: description.trim()
+    };
+    
+    if (!validateForm(formData)) {
+      return;
+    }
 
     setIsCreating(true);
     try {
-      await onCreate(name.trim(), description.trim());
+      // Sanitize inputs before creating
+      const sanitizedName = Sanitizers.sanitizeProjectName(formData.name);
+      const sanitizedDescription = formData.description;
+      
+      await onCreate(sanitizedName, sanitizedDescription);
       setName('');
       setDescription('');
+      clearErrors();
       onClose();
     } catch (error) {
       console.error('Failed to create project:', error);
@@ -47,12 +62,18 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           type="text"
           id="name"
           value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          onChange={(e) => {
+            setName(e.target.value);
+            validateField('name', e.target.value);
+          }}
+          className={`w-full px-3 py-2 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 ${errors.name ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
           placeholder="My Awesome Project"
           required
           autoFocus
         />
+        {errors.name && (
+          <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+        )}
       </div>
 
       <div className="mb-6">
@@ -62,11 +83,17 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         <textarea
           id="description"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => {
+            setDescription(e.target.value);
+            validateField('description', e.target.value);
+          }}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`w-full px-3 py-2 border ${errors.description ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 ${errors.description ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
           placeholder="プロジェクトの説明を入力してください"
         />
+        {errors.description && (
+          <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+        )}
       </div>
 
       <div className={`flex justify-end space-x-3 ${isMobile ? 'border-t pt-4' : ''}`}>

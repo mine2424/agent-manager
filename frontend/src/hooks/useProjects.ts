@@ -15,12 +15,14 @@ import { db } from '../services/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { Project } from '../types';
 import toast from 'react-hot-toast';
+import { withErrorHandling, useErrorHandler } from '../utils/errorHandler';
 
 export const useProjects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const handleError = useErrorHandler();
 
   useEffect(() => {
     if (!user) {
@@ -53,7 +55,7 @@ export const useProjects = () => {
         console.error('Error fetching projects:', err);
         setError('プロジェクトの取得に失敗しました');
         setLoading(false);
-        toast.error('プロジェクトの取得に失敗しました');
+        handleError(err);
       }
     );
 
@@ -65,49 +67,52 @@ export const useProjects = () => {
       throw new Error('ユーザーが認証されていません');
     }
 
-    try {
-      const projectData = {
-        userId: user.uid,
-        name,
-        description,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      };
+    return await withErrorHandling(
+      async () => {
+        const projectData = {
+          userId: user.uid,
+          name,
+          description,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        };
 
-      const docRef = await addDoc(collection(db, 'projects'), projectData);
-      toast.success('プロジェクトを作成しました');
-      return docRef.id;
-    } catch (err) {
-      console.error('Error creating project:', err);
-      toast.error('プロジェクトの作成に失敗しました');
-      throw err;
-    }
+        const docRef = await addDoc(collection(db, 'projects'), projectData);
+        toast.success('プロジェクトを作成しました');
+        return docRef.id;
+      },
+      {
+        errorMessage: 'プロジェクトの作成に失敗しました'
+      }
+    );
   };
 
   const updateProject = async (projectId: string, updates: Partial<Project>) => {
-    try {
-      const projectRef = doc(db, 'projects', projectId);
-      await updateDoc(projectRef, {
-        ...updates,
-        updatedAt: serverTimestamp()
-      });
-      toast.success('プロジェクトを更新しました');
-    } catch (err) {
-      console.error('Error updating project:', err);
-      toast.error('プロジェクトの更新に失敗しました');
-      throw err;
-    }
+    return await withErrorHandling(
+      async () => {
+        const projectRef = doc(db, 'projects', projectId);
+        await updateDoc(projectRef, {
+          ...updates,
+          updatedAt: serverTimestamp()
+        });
+        toast.success('プロジェクトを更新しました');
+      },
+      {
+        errorMessage: 'プロジェクトの更新に失敗しました'
+      }
+    );
   };
 
   const deleteProject = async (projectId: string) => {
-    try {
-      await deleteDoc(doc(db, 'projects', projectId));
-      toast.success('プロジェクトを削除しました');
-    } catch (err) {
-      console.error('Error deleting project:', err);
-      toast.error('プロジェクトの削除に失敗しました');
-      throw err;
-    }
+    return await withErrorHandling(
+      async () => {
+        await deleteDoc(doc(db, 'projects', projectId));
+        toast.success('プロジェクトを削除しました');
+      },
+      {
+        errorMessage: 'プロジェクトの削除に失敗しました'
+      }
+    );
   };
 
   return {

@@ -1,26 +1,51 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // ユーザーは自分のデータのみアクセス可能
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    // 認証済みユーザーのみアクセス可能
+    function isAuthenticated() {
+      return request.auth != null;
     }
     
-    // プロジェクトは所有者のみアクセス可能
+    // プロジェクトの所有者かどうかをチェック
+    function isProjectOwner(projectId) {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/projects/$(projectId)).data.userId == request.auth.uid;
+    }
+    
+    // ユーザーは自分のデータのみアクセス可能
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // プロジェクトのルール
     match /projects/{projectId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      // リスト表示: 認証済みユーザーは自分のプロジェクトを一覧できる
+      allow list: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      
+      // 読み取り: 認証済みユーザーは自分のプロジェクトのみ読み取り可能
+      allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // 作成: 認証済みユーザーは自分のuserIdを含むプロジェクトのみ作成可能
+      allow create: if isAuthenticated() && 
+        request.auth.uid == request.resource.data.userId &&
+        request.resource.data.keys().hasAll(['userId', 'name', 'createdAt', 'updatedAt']);
+      
+      // 更新: 認証済みユーザーは自分のプロジェクトのみ更新可能
+      allow update: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == resource.data.userId; // userIdは変更不可
+      
+      // 削除: 認証済みユーザーは自分のプロジェクトのみ削除可能
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
       
       // プロジェクト内のファイル
       match /files/{fileId} {
-        allow read, write: if request.auth != null && 
-          request.auth.uid == get(/databases/$(database)/documents/projects/$(projectId)).data.userId;
+        allow read, write: if isProjectOwner(projectId);
       }
       
       // プロジェクトの実行履歴
       match /executions/{executionId} {
-        allow read, write: if request.auth != null && 
-          request.auth.uid == get(/databases/$(database)/documents/projects/$(projectId)).data.userId;
+        allow read, write: if isProjectOwner(projectId);
       }
     }
   }
